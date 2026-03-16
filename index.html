@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description"
+    content="The Kamino simulator is a GPU-accelerated physics solver for accurate simulation of complex mechanical systems with kinematic loops.">
+  <meta name="keywords" content="Robotics Simulation, GPU Physics, Kinematic Loops, Reinforcement Learning">
+  <title>Kamino - GPU-Accelerated Physics Solver</title>
+
+  <!-- TODO: Replace with your own Google Analytics ID and uncomment
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'G-XXXXXXXXXX');
+  </script>
+  -->
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="./static/css/main.css">
+
+  <!-- Gist Styling Override -->
+  <style type="text/css">
+    .gist .blob-code-inner {
+      font-size: 12px !important;
+    }
+
+    .gist,
+    .gist * {
+      -webkit-user-select: text !important;
+      -moz-user-select: text !important;
+      -ms-user-select: text !important;
+      user-select: text !important;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Navigation Header -->
+  <header class="site-header">
+    <nav class="main-nav" role="navigation" aria-label="Main navigation">
+      <div class="nav-brand">
+        <a href="#" class="nav-logo">Kamino</a>
+      </div>
+      <button class="nav-toggle" data-nav-toggle aria-label="Toggle navigation" aria-expanded="false">
+        <span>☰</span>
+      </button>
+      <ul class="nav-menu" data-nav-menu>
+        <li><a href="#abstract">Abstract</a></li>
+        <li><a href="#overview">Overview</a></li>
+        <li><a href="#examples">Examples</a></li>
+        <li><a href="#usage">Usage</a></li>
+        <li><a href="#citing">Cite</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="site-content">
+    <!-- Hero Section -->
+    <section class="hero-section fade-in-section" aria-labelledby="main-title">
+      <div class="section-wrapper">
+        <div class="content-container">
+          <h1 id="main-title" class="hero-title">Kamino</h1>
+
+          <div class="authors-list" role="list">
+            <span class="author">Vassilios Tsounis<sup>1</sup></span><span class="author-separator"></span>
+            <span class="author">Guirec Maloisel<sup>1</sup></span><span class="author-separator"></span>
+            <span class="author">Christian Schumacher<sup>1</sup></span><span class="author-separator"></span>
+            <span class="author">Ruben Grandia<sup>1</sup></span><span class="author-separator"></span><span class="author-break"></span>
+            <span class="author">Agon Serifi<sup>1</sup></span><span class="author-separator"></span>
+            <span class="author">David Müller<sup>1</sup></span><span class="author-separator"></span>
+            <span class="author">Chris Amevor<sup>2</sup></span><span class="author-separator"></span>
+            <span class="author">Tobias Widmer<sup>2</sup></span><span class="author-separator"></span>
+            <span class="author">Moritz Bächer<sup>1</sup></span>
+          </div>
+
+          <div class="affiliations">
+            <span><sup>1</sup>Disney Research, Zurich</span>
+            &nbsp;&nbsp;&nbsp;
+            <span><sup>2</sup>NVIDIA, Zurich</span>
+          </div>
+
+          <div class="publication-links">
+            <a href="https://arxiv.org/pdf/0000.00000" target="_blank" class="btn btn-primary"
+              aria-label="View paper PDF">
+              <span>Paper (soon)</span>
+            </a>
+            <a href="./static/videos/all_robots.mp4" target="_blank" class="btn btn-secondary"
+              aria-label="View demonstration video">
+              <span>Video</span>
+            </a>
+            <a href="https://github.com/newton-physics/newton/tree/main/newton/_src/solvers/kamino" target="_blank" class="btn btn-secondary"
+              aria-label="View source code on GitHub">
+              <span>Code</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Abstract Section -->
+    <section id="abstract" class="abstract-section fade-in-section" aria-labelledby="abstract-heading">
+      <div class="section-wrapper">
+        <div class="content-narrow">
+          <h2 id="abstract-heading" class="text-center">Abstract</h2>
+          <p>
+            The Kamino simulation software is a GPU-accelerated physics solver designed for accurate simulation of complex
+            mechanical systems with kinematic loops, such as parallel manipulators, planar and spatial
+            linkages, and multi-limbed robots with coupled joints, without requiring simplified
+            approximations. Built on NVIDIA Warp and integrated into the open-source Newton physics
+            framework, the Kamino simulator enables large-scale reinforcement learning by running thousands of
+            parallel environments on a single GPU, including heterogeneous worlds where each
+            environment can contain a structurally different robot.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Video Showcase -->
+    <section class="video-showcase fade-in-section" aria-label="Demonstration video">
+      <div class="section-wrapper">
+        <div class="content-container">
+          <div class="video-container">
+            <video controls autoplay muted loop playsinline aria-label="Kamino simulator demonstration showcasing various robots">
+              <source src="./static/videos/all_robots.mp4" type="video/mp4">
+              Your browser does not support the video tag.
+            </video>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Overview Section -->
+    <section id="overview" class="overview-section fade-in-section" aria-labelledby="overview-heading">
+      <div class="section-wrapper">
+        <div class="content-container">
+          <h2 id="overview-heading">Overview</h2>
+          <p>
+            Simulating complex mechanical systems, such as multi-limb robots, is essential for development and testing,
+            especially when using deep reinforcement learning (RL).
+            Practitioners often face difficulties with highly coupled mechanical assemblies that contain intrinsic closed
+            kinematic loops, which are frequently used to transfer power more efficiently than serial chains.
+            Simulating these systems involves challenges such as ill-conditioning due to large mass ratios, redundant
+            constraints, and the need for accurate constraint satisfaction and stabilization.
+            Consequently, these kinematic complexities are often approximated by equivalent articulated systems, which
+            requires expertise and can increase the sim-to-real gap.
+          </p>
+
+          <!-- SVG Diagram -->
+          <div class="diagram-container" role="img" aria-label="Comparison diagram showing kinematic tree versus kinematic loop topology">
+            <svg viewBox="0 0 800 380" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <style>
+                  .diagram-title {
+                    font-family: 'Inter', sans-serif;
+                    font-size: 20px;
+                    font-weight: 600;
+                    fill: #1A1A1A;
+                  }
+
+                  .diagram-subtitle {
+                    font-family: 'Inter', sans-serif;
+                    font-size: 13px;
+                    fill: #6B6B6B;
+                  }
+
+                  .diagram-caption {
+                    font-family: 'Inter', sans-serif;
+                    font-size: 12px;
+                    fill: #6B6B6B;
+                  }
+
+                  .diagram-caption-bold {
+                    font-family: 'Inter', sans-serif;
+                    font-size: 12px;
+                    fill: #0066CC;
+                    font-weight: 600;
+                  }
+
+                  .node-label {
+                    font-family: 'Inter', sans-serif;
+                    font-size: 11px;
+                    fill: white;
+                    text-anchor: middle;
+                    dominant-baseline: central;
+                  }
+
+                  .ground-fill {
+                    fill: #7a7a7a;
+                  }
+
+                  .body-fill {
+                    fill: #0066CC;
+                  }
+
+                  .link-stroke {
+                    stroke: #999;
+                    stroke-width: 2.5;
+                    stroke-linecap: round;
+                  }
+
+                  .joint-fill {
+                    fill: #FF6B35;
+                  }
+                </style>
+              </defs>
+
+              <!-- Dashed divider -->
+              <line x1="400" y1="15" x2="400" y2="345" stroke="#ddd" stroke-width="1" stroke-dasharray="6,4" />
+
+              <!-- LEFT: Kinematic Tree -->
+              <text x="195" y="32" class="diagram-title" text-anchor="middle">Kinematic Tree</text>
+              <text x="195" y="52" class="diagram-subtitle" text-anchor="middle">Open-chain topology</text>
+
+              <!-- Body 0 node -->
+              <rect x="150" y="78" width="90" height="30" rx="6" class="ground-fill" />
+              <text x="195" y="93" class="node-label">Body 0</text>
+
+              <!-- Body 0 → Body 1 -->
+              <line x1="195" y1="108" x2="195" y2="155" class="link-stroke" />
+              <circle cx="195" cy="131" r="5" class="joint-fill" />
+
+              <!-- Body 1 -->
+              <rect x="155" y="155" width="80" height="30" rx="6" class="body-fill" />
+              <text x="195" y="170" class="node-label">Body 1</text>
+
+              <!-- Body 1 → Body 2 (left branch) -->
+              <line x1="175" y1="185" x2="120" y2="235" class="link-stroke" />
+              <circle cx="148" cy="210" r="5" class="joint-fill" />
+
+              <!-- Body 2 -->
+              <rect x="80" y="235" width="80" height="30" rx="6" class="body-fill" />
+              <text x="120" y="250" class="node-label">Body 2</text>
+
+              <!-- Body 1 → Body 3 (right branch) -->
+              <line x1="215" y1="185" x2="270" y2="235" class="link-stroke" />
+              <circle cx="242" cy="210" r="5" class="joint-fill" />
+
+              <!-- Body 3 -->
+              <rect x="230" y="235" width="80" height="30" rx="6" class="body-fill" />
+              <text x="270" y="250" class="node-label">Body 3</text>
+
+              <!-- Body 2 → Body 4 -->
+              <line x1="120" y1="265" x2="120" y2="305" class="link-stroke" />
+              <circle cx="120" cy="285" r="5" class="joint-fill" />
+
+              <!-- Body 4 -->
+              <rect x="80" y="305" width="80" height="30" rx="6" class="body-fill" />
+              <text x="120" y="320" class="node-label">Body 4</text>
+
+              <!-- Loop closure constraint (dotted) Body 4 → Body 3 -->
+              <line x1="160" y1="312" x2="234" y2="262" stroke="#FF6B35" stroke-width="2" stroke-dasharray="5,4"
+                stroke-linecap="round" />
+              <text x="215" y="298" font-family="Inter, sans-serif" font-size="10" fill="#FF6B35" text-anchor="start"
+                font-style="italic">loop closure</text>
+
+              <!-- Left caption -->
+              <text x="195" y="362" class="diagram-caption" text-anchor="middle">Most articulated body simulators</text>
+
+              <!-- RIGHT: Kinematic Loop -->
+              <text x="605" y="32" class="diagram-title" text-anchor="middle">Kinematic Loop</text>
+              <text x="605" y="52" class="diagram-subtitle" text-anchor="middle">Closed-chain topology</text>
+
+              <!-- Body 0 node -->
+              <rect x="555" y="78" width="100" height="30" rx="6" class="ground-fill" />
+              <text x="605" y="93" class="node-label">Body 0</text>
+
+              <!-- Body 0 → Body 1 (left) -->
+              <line x1="580" y1="108" x2="520" y2="185" class="link-stroke" />
+              <circle cx="550" cy="146" r="5" class="joint-fill" />
+
+              <!-- Body 1 -->
+              <rect x="480" y="185" width="80" height="30" rx="6" class="body-fill" />
+              <text x="520" y="200" class="node-label">Body 1</text>
+
+              <!-- Ground → Body 2 (right) -->
+              <line x1="630" y1="108" x2="690" y2="185" class="link-stroke" />
+              <circle cx="660" cy="146" r="5" class="joint-fill" />
+
+              <!-- Body 2 -->
+              <rect x="650" y="185" width="80" height="30" rx="6" class="body-fill" />
+              <text x="690" y="200" class="node-label">Body 2</text>
+
+              <!-- Body 1 → Coupler (bottom left) -->
+              <line x1="540" y1="215" x2="580" y2="285" class="link-stroke" />
+              <circle cx="560" cy="250" r="5" class="joint-fill" />
+
+              <!-- Body 2 → Coupler (bottom right) -->
+              <line x1="670" y1="215" x2="630" y2="285" class="link-stroke" />
+              <circle cx="650" cy="250" r="5" class="joint-fill" />
+
+              <!-- Coupler -->
+              <rect x="560" y="285" width="90" height="30" rx="6" class="body-fill" />
+              <text x="605" y="300" class="node-label">Body 3</text>
+
+              <!-- Right caption -->
+              <text x="605" y="362" class="diagram-caption-bold" text-anchor="middle">Natively supported by the Kamino simulator</text>
+            </svg>
+          </div>
+
+          <p class="text-center text-muted" style="font-style: italic; max-width: 700px; margin: 0 auto;">
+            <strong style="color: #555; font-style: normal;">Figure:</strong>
+            Most physics simulators focus on kinematic trees (open chains) and sometimes provide a limited set of
+            loop closure constraints. The Kamino simulator natively supports arbitrary joint topologies, including closed kinematic
+            loops, enabling accurate simulation of complex mechanical assemblies.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Use Cases Section -->
+    <section class="use-cases-section fade-in-section" aria-labelledby="use-cases-heading">
+      <div class="section-wrapper">
+        <div class="content-container">
+          <h2 id="use-cases-heading">When to Use the Kamino Simulator</h2>
+          <p><strong>Note:</strong> <em>The Kamino simulator is currently in beta. Performance improvements and support for additional
+              features are actively being worked on.</em></p>
+          <p>The Kamino simulator is designed for simulating complex mechanical systems that go beyond simple kinematic trees.
+            Consider using the Kamino simulator when your application involves:</p>
+          <ul>
+            <li><strong>Kinematic loops</strong> — closed-chain mechanisms such as planar and spatial linkages, parallel
+              manipulators, and multi-limbed robots with coupled joints. The Kamino simulator simulates the actual mechanical
+              assembly rather than requiring approximations.</li>
+            <li><strong>Accurate and robust dynamics</strong> — The Kamino simulator is based on an ADMM (Alternating Direction Method of Multipliers) solver that provides accurate
+              constraint satisfaction and handles ill-conditioned systems with large mass ratios, redundant
+              constraints, or tightly coupled interactions between bodies.</li>
+            <li><strong>GPU-accelerated batch simulation</strong> — training reinforcement learning policies by
+              simulating many parallel worlds on a GPU. Unlike most simulators, the Kamino simulator supports <em>heterogeneous</em>
+              environments where each parallel world can contain a completely different model (different bodies,
+              joints, and collision geometries).</li>
+          </ul>
+
+          <h2 class="gallery-section-title">When Not to Use the Kamino Simulator</h2>
+          <ul>
+            <li><strong>Pure articulated systems</strong> — if your system is a kinematic tree without closed
+              loops, a dedicated articulated-body solver will be faster. The Kamino simulator's generality comes at a computational
+              cost.</li>
+            <li><strong>Low-latency, single-system simulation</strong> — simulating a single environment in real
+              time is not the Kamino simulator's strength. For low-latency simulation, a dedicated CPU simulator is preferred.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Ecosystem Section -->
+    <section class="ecosystem-section fade-in-section" aria-labelledby="ecosystem-heading">
+      <div class="section-wrapper">
+        <div class="content-container">
+          <h2 id="ecosystem-heading">Ecosystem</h2>
+          <p>
+            The Kamino simulator is a solver backend within <a href="https://github.com/newton-physics/newton"
+              target="_blank"><strong>NVIDIA Newton</strong></a>, an open-source framework for GPU-accelerated physics
+            simulation.
+            Newton provides a common interface for multiple solver backends, and the Kamino simulator extends this with native
+            support for constrained multi-body systems with kinematic loops.
+          </p>
+          <p>
+            For reinforcement learning workflows, integration with <a href="https://github.com/isaac-sim/IsaacLab"
+              target="_blank"><strong>Isaac Lab</strong></a>, NVIDIA's framework for robot learning, is planned and
+            will be available soon.
+            Isaac Lab will provide environment wrappers, task definitions, and training pipelines on top of Newton's
+            physics backends, enabling end-to-end RL training with the Kamino simulator.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Examples Gallery -->
+    <section id="examples" class="examples-gallery fade-in-section" aria-labelledby="examples-heading">
+      <div class="section-wrapper">
+        <div class="content-container">
+          <h2 id="examples-heading" class="gallery-section-title">Basic Examples</h2>
+          <div class="gallery-grid">
+            <!-- Example 1 -->
+            <a href="https://github.com/newton-physics/newton/tree/main/newton/_src/solvers/kamino/examples/sim/example_sim_basics_box_on_plane.py"
+              target="_blank" class="video-card">
+              <video autoplay muted loop playsinline aria-label="Box on plane example">
+                <source src="./static/videos/examples_basics_box_on_plane.mp4" type="video/mp4">
+              </video>
+              <div class="video-card-label">newton.kamino.examples.basics_box_on_plane</div>
+            </a>
+
+            <!-- Example 2 -->
+            <a href="https://github.com/newton-physics/newton/tree/main/newton/_src/solvers/kamino/examples/sim/example_sim_basics_cartpole.py"
+              target="_blank" class="video-card">
+              <video autoplay muted loop playsinline aria-label="Cart pole example">
+                <source src="./static/videos/examples_basics_cartpole.mp4" type="video/mp4">
+              </video>
+              <div class="video-card-label">newton.kamino.examples.basics_cartpole</div>
+            </a>
+
+            <!-- Example 3 -->
+            <a href="https://github.com/newton-physics/newton/tree/main/newton/_src/solvers/kamino/examples/sim/example_sim_basics_boxes_fourbar.py"
+              target="_blank" class="video-card">
+              <video autoplay muted loop playsinline aria-label="Four bar linkage example">
+                <source src="./static/videos/examples_basics_fourbar.mp4" type="video/mp4">
+              </video>
+              <div class="video-card-label">newton.kamino.examples.basics_fourbar</div>
+            </a>
+
+            <!-- Example 4 -->
+            <a href="https://github.com/newton-physics/newton/tree/main/newton/_src/solvers/kamino/examples/sim/example_sim_dr_testmech.py"
+              target="_blank" class="video-card">
+              <video autoplay muted loop playsinline aria-label="DR test mechanism example">
+                <source src="./static/videos/examples_basics_dr_testmech.mp4" type="video/mp4">
+              </video>
+              <div class="video-card-label">newton.kamino.examples.basics_dr_testmech</div>
+            </a>
+          </div>
+
+          <h2 class="gallery-section-title">Robot Examples</h2>
+          <div class="gallery-grid">
+            <!-- Robot 1 -->
+            <a href="https://github.com/newton-physics/newton/tree/main/newton/_src/solvers/kamino/examples/sim/example_sim_dr_legs.py"
+              target="_blank" class="video-card">
+              <video autoplay muted loop playsinline aria-label="DR legs robot example">
+                <source src="./static/videos/drlegs.mp4" type="video/mp4">
+              </video>
+              <div class="video-card-label">newton.kamino.examples.robot_dr_legs</div>
+            </a>
+
+            <!-- Robot 2 -->
+            <div class="video-card">
+              <video autoplay muted loop playsinline aria-label="BDX robot example">
+                <source src="./static/videos/bdx.mp4" type="video/mp4">
+              </video>
+              <div class="video-card-label">BDX (proprietary)</div>
+            </div>
+
+            <!-- Robot 3 -->
+            <div class="video-card">
+              <video autoplay muted loop playsinline aria-label="Olaf robot example">
+                <source src="./static/videos/olaf.mp4" type="video/mp4">
+              </video>
+              <div class="video-card-label">Olaf (proprietary)</div>
+            </div>
+
+            <!-- Robot 4 -->
+            <div class="video-card">
+              <video autoplay muted loop playsinline aria-label="Iron Man robot example">
+                <source src="./static/videos/ironman.mp4" type="video/mp4">
+              </video>
+              <div class="video-card-label">Iron Man © MARVEL, Disneyland Paris (proprietary)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Basic Usage Section -->
+    <section id="usage" class="usage-section fade-in-section" aria-labelledby="usage-heading">
+      <div class="section-wrapper">
+        <div class="content-container">
+          <h2 id="usage-heading">Basic Usage</h2>
+
+          <h3>Loading a model from USD</h3>
+          <p>The simplest way to get started is to load a model from a USD file:</p>
+
+          <div class="gist-container">
+            <div class="code-container">
+              <div class="code-header">
+                <span class="code-label">Python Example</span>
+                <button class="copy-btn" data-copy-target="gist-embed-code" aria-label="Copy code">
+                  <svg class="icon-copy" xmlns="http://www.w3.org/2000/svg" height="18px" viewBox="0 -960 960 960"
+                    width="18px" fill="#5f6368">
+                    <path
+                      d="M360-240q-33 0-56.5-23.5T280-320v-480q0-33 23.5-56.5T360-880h360q33 0 56.5 23.5T800-800v480q0-33-23.5-56.5T720-240H360Zm0-80h360v-480H360v480ZM200-80q-33 0-56.5-23.5T120-160v-560h80v560h440v80H200Zm160-240v-480 480Z" />
+                  </svg>
+                  <svg class="icon-check" xmlns="http://www.w3.org/2000/svg" height="18px" viewBox="0 -960 960 960"
+                    width="18px" fill="#1e8e3e" style="display:none;">
+                    <path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <div id="gist-embed-code">
+              <script src="https://gist.github.com/vastsoun/ee140781582483eb3c0ae1e503465aec.js"></script>
+            </div>
+          </div>
+
+          <h3>Advanced Setup</h3>
+          <p>The Kamino simulator examples showcase some of the features beyond a basic setup:</p>
+          <ul>
+            <li>All examples feature a multi-world setup with CUDA graph capture to speed up GPU-based computations.</li>
+            <li>The <a
+                href="https://github.com/newton-physics/newton/tree/main/newton/_src/solvers/kamino/examples/newton/example_fourbar.py"
+                target="_blank">fourbar example</a> shows how to use the simulation configuration to adapt simulation
+              parameters.</li>
+            <li>The <a
+                href="https://github.com/newton-physics/newton/tree/main/newton/_src/solvers/kamino/examples/sim/example_sim_dr_legs.py"
+                target="_blank">DR Legs example</a> sets up PID control to actively move the robot based on an input
+              animation.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Acknowledgements Section -->
+    <section class="acknowledgements-section fade-in-section" aria-labelledby="acknowledgements-heading">
+      <div class="section-wrapper">
+        <div class="content-container">
+          <h2 id="acknowledgements-heading">Acknowledgements</h2>
+          <p>
+            We thank
+            Josefine Klintberg, Espen Knoop (Disney Research, Zurich) and Kyle Laughlin (Walt Disney Imagineering R&D,
+            Glendale),
+            as well as
+            Gilles Daviet,
+            Eric Heiden,
+            Miles Macklin,
+            Gavriel State,
+            Alain Denzler,
+            Philipp Reist,
+            Adam Moravanszky,
+            and Spencer Huang
+            (NVIDIA)
+            for their contributions and support.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Citations Section -->
+    <section id="citing" class="citations-section fade-in-section" aria-labelledby="citing-heading">
+      <div class="section-wrapper">
+        <div class="content-container">
+          <h2 id="citing-heading">Citing the Kamino Simulator</h2>
+          <p>If you use the Kamino simulator in your research, please cite the following papers:</p>
+
+          <p><strong>Kamino simulator system description:</strong> coming soon.</p>
+          <div class="citation-container">
+            <div class="citation-header">
+              <span class="citation-title">BibTeX</span>
+              <button class="copy-btn" data-copy-target="bibtex-kamino" aria-label="Copy citation">
+                <svg class="icon-copy" xmlns="http://www.w3.org/2000/svg" height="18px" viewBox="0 -960 960 960"
+                  width="18px" fill="#5f6368">
+                  <path
+                    d="M360-240q-33 0-56.5-23.5T280-320v-480q0-33 23.5-56.5T360-880h360q33 0 56.5 23.5T800-800v480q0-33-23.5-56.5T720-240H360Zm0-80h360v-480H360v480ZM200-80q-33 0-56.5-23.5T120-160v-560h80v560h440v80H200Zm160-240v-480 480Z" />
+                </svg>
+                <svg class="icon-check" xmlns="http://www.w3.org/2000/svg" height="18px" viewBox="0 -960 960 960"
+                  width="18px" fill="#1e8e3e" style="display:none;">
+                  <path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z" />
+                </svg>
+              </button>
+            </div>
+            <div class="citation-content">
+              <pre id="bibtex-kamino">@article{kamino2026,
+  title={Kamino: GPU-based Massively Parallel Simulation of Multi-Body Systems with Challenging Topologies},
+  author={Vassilios Tsounis, Guirec Maloisel, Christian Schumacher, Ruben Grandia, Agon Serifi, David M{\"u}ller, Chris Amevor, Tobias Widmer, Moritz B{\"a}cher},
+  year={2026},
+}</pre>
+            </div>
+          </div>
+
+          <p><strong>Algorithmic foundations:</strong> the core solver algorithm and its mathematical formulation.</p>
+          <div class="citation-container">
+            <div class="citation-header">
+              <span class="citation-title">BibTeX</span>
+              <button class="copy-btn" data-copy-target="bibtex-algorithm" aria-label="Copy citation">
+                <svg class="icon-copy" xmlns="http://www.w3.org/2000/svg" height="18px" viewBox="0 -960 960 960"
+                  width="18px" fill="#5f6368">
+                  <path
+                    d="M360-240q-33 0-56.5-23.5T280-320v-480q0-33 23.5-56.5T360-880h360q33 0 56.5 23.5T800-800v480q0-33-23.5-56.5T720-240H360Zm0-80h360v-480H360v480ZM200-80q-33 0-56.5-23.5T120-160v-560h80v560h440v80H200Zm160-240v-480 480Z" />
+                </svg>
+                <svg class="icon-check" xmlns="http://www.w3.org/2000/svg" height="18px" viewBox="0 -960 960 960"
+                  width="18px" fill="#1e8e3e" style="display:none;">
+                  <path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z" />
+                </svg>
+              </button>
+            </div>
+            <div class="citation-content">
+              <pre id="bibtex-algorithm">@article{tsounis2025solving,
+  title={On Solving the Dynamics of Constrained Rigid Multi-Body Systems with Kinematic Loops},
+  author={Tsounis, Vassilios and Grandia, Ruben and B{\"a}cher, Moritz},
+  journal={arXiv preprint arXiv:2504.19771},
+  year={2025},
+}</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="content-container">
+      <p>©2026 Disney Enterprises, Inc.</p>
+    </div>
+  </footer>
+
+  <!-- JavaScript -->
+  <script type="module" src="./static/js/main.js"></script>
+</body>
+
+</html>
